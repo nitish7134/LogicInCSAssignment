@@ -180,16 +180,16 @@ void main()
     scanf("%d", &n);
     scanf("\n%[^\n]%c", formula);
 
-    int noOfValues = (int)1 << n;
-    int trueCtr = 0;
-    char CNF[MAX];
-    int CNFi = 0;
+    int noOfValues = (int)1 << n; //Number of lines in the truth table
+    int trueCtr = 0;    //No of trues in the table
+    char CNF[MAX];      //Character array to store the final ans.
+    int CNFi = 0;       //Index of element in CNF array at which we are working on while writing the answer.
 
     for (int i = 0; i < noOfValues; i++)
     { //ith Line in TruthTable
         for (int j = 0; j < n; j++)
         { //VALUE OF Jth atom
-            if ((i & (1 << j)) == 0)
+            if ((i & (1 << j)) == 0)    //If jth index is 0 then false else true
             {
                 operand_stack_val[j] = 'F';
             }
@@ -198,12 +198,12 @@ void main()
                 operand_stack_val[j] = 'T';
             }
         }
-        int ans = eval_formula(n, formula, operand_stack_val);
-        if (ans == 'T')
+        int ans = eval_formula(n, formula, operand_stack_val);  //Evaluate using code of PART 1
+        if (ans == 'T') //If true in truth table update counter
             trueCtr++;
         else
         {
-            if (CNFi != 0)
+            if (CNFi != 0)  //Formatiing and appending current false value in the final Answer
             {
                 CNF[CNFi++] = ' ';
                 CNF[CNFi++] = ')';
@@ -239,18 +239,18 @@ void main()
     CNF[CNFi++] = ' ';
     if (trueCtr != 0)
     {
-        printf("Formula is satisfiable\n");
+        printf("Formula is satisfiable\n"); //If any one line in truth table is true then satisfiable
     }
     else
     {
-        printf("Formula is satisfiable\n");
+        printf("Formula is not satisfiable\n");
     }
     if (trueCtr == noOfValues)
-        printf("Formula is valid\n");
+        printf("Formula is valid\n");   //If all the lines in the truth table are true then it is valid
     else
         printf("Formula is not valid\n");
     for (int i = 0; i < CNFi; i++)
     {
-        printf("%c", CNF[i]);
+        printf("%c", CNF[i]);   
     }
 }
