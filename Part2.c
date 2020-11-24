@@ -1,179 +1,188 @@
-#include <stdio.h>
+/* Logic Homework 3, Part 2 */
+/* Team Number: 58 */
+/* Team Members:
+1. Nitish Mittal 2018A3PS1076H <ID #>
+2. Ayush Deep 2018A3PS0516H
+3. Shardul Khadye 2018A8PS0945H
+4. Prabhav Sharma 2018A3PS0337H
+*/
+
 #include <stdlib.h>
-#define MAX_STRING_LENGTH 50
-#define Max_Atoms 9
+#include <stdio.h>
+#include <string.h>
 
-char evalv(int n, char propLogic[], char values[], int NumOfOperators, int NumOfOperands)
+#define MAX 2048 // macro indicating the maximum size of stack As we have maximum of 9 atoms. this we can have 2^9 lines and including symbols and spaces aprox 2^11
+
+/***************************************************************/
+/********************stack operations***************************/
+
+// Inserting data onto top of stack. Takes as arguments the data to be pushed, the array used for implementing the stack and an integer pointer referencing the index of the top of that stack.
+
+void push(char data, char stack[], int *top)
 {
-    char *operators = (char *)malloc(NumOfOperators * sizeof(char));
-    char *operand = (char *)malloc(NumOfOperands * sizeof(char));
-    int topOperator = -1;
-    int topOperand = -1;
-    for (char *i = propLogic; *i != '\0'; i++)
+    if (*top != MAX - 1) // if stack is not full
     {
+        *top = *top + 1;
+        stack[*top] = data;
+    }
+    else
+    {
+        printf("Could not insert data, Stack is full.\n");
+    }
+}
 
+// Removing element from top of stack. Takes as arguments the array used for implementing the stack and an integer pointer referencing the index of the top of that stack. Returns the popped character.
+
+char pop(char stack[], int *top)
+{
+    char data;
+
+    if (*top != -1) //checking whether stack contains some elements
+    {
+        data = stack[*top];
+        *top = *top - 1;
+        return data;
+    }
+
+    else
+    {
+        printf("Could not retrieve data, Stack is empty.\n");
+    }
+}
+
+// NOTE:
+// A pointer to the variable top is passed instead of passing the top variable itself. This is done to ensure top is passed as reference and any modifications to the top variable
+// would be reflected in the calling function
+
+/***************************************************************/
+/********************* implementation **************************/
+
+
+//Process As described in the Problem Document
+//Takes in operand stack and operator to process  as parameters and returns nothing
+void process(char operand_stack[], int *operand_top, char operator)
+{
+    char op1 = pop(operand_stack, operand_top);
+    if (operator== '~') //Unary Operator
+    {
+        if (op1 == 'T')
+        {
+            push('F', operand_stack, operand_top);
+        }
+        else
+        {
+            push('T', operand_stack, operand_top);
+        }
+    }
+    else //Binary Operator
+    {
+        char op2 = pop(operand_stack, operand_top);
+        switch (operator)
+        {
+        case 'V':
+            if (op1 == 'T' || op2 == 'T')
+                push('T', operand_stack, operand_top);
+            else
+            {
+                push('F', operand_stack, operand_top);
+            }
+
+            break;
+        case '^':
+            if (op1 == 'T' && op2 == 'T')
+                push('T', operand_stack, operand_top);
+            else
+            {
+                push('F', operand_stack, operand_top);
+            }
+
+            break;
+        case '>':
+            if (op1 == 'T' || op2 == 'F')
+                push('T', operand_stack, operand_top);
+            else
+            {
+                push('F', operand_stack, operand_top);
+            }
+
+            break;
+        default:
+            printf("INVALID OPERATOR DETECTED: %c .\n", operator);
+        }
+    }
+}
+
+// function to implement the solution for Part 1. Takes as arguments the number of atoms, the character array to store the completely parenthesized input formula and the array to store the valuation of the atoms
+// returns the final result of evaluating the formula (either T or F)
+
+char eval_formula(int n, char formula[], char operand_stack_val[])
+{
+    unsigned int NumOfoperator_stack = 0, NumOfoperand_stacks = 0;
+    for (char *i = formula; *i != '\0'; i++)
+    {
         if (*i == ' ')
             continue;
         if ((int)*i >= 48 && (int)*i <= 57)
         {
-            topOperand++;
-            operand[topOperand] = values[(int)(*i) - '1'];
-        }
-        else if (*i == ')')
-        {
-            while (operators[topOperator] != '(')
-            { //PROCESS
-
-                char op1 = operand[topOperand];
-                char operator= operators[topOperator];
-                if (operator== '~') //Unary Operator
-                {
-                    if (operand[topOperand] == 'T')
-                    {
-                        operand[topOperand] = 'F';
-                    }
-                    else
-                    {
-                        operand[topOperand] = 'T';
-                    }
-                }
-                else //Binary Operator
-                {
-                    topOperand--;
-                    char op2 = operand[topOperand];
-
-                    switch (operator)
-                    {
-                    case 'V':
-                        if (op1 == 'T' || op2 == 'T')
-                            operand[topOperand] = 'T';
-                        else
-                        {
-                            operand[topOperand] = 'F';
-                        }
-
-                        break;
-                    case '^':
-                        if (op1 == 'T' && op2 == 'T')
-                            operand[topOperand] = 'T';
-                        else
-                        {
-                            operand[topOperand] = 'F';
-                        }
-
-                        break;
-                    case '>':
-                        if (op1 == 'T' || op2 == 'F')
-                            operand[topOperand] = 'T';
-                        else
-                        {
-                            operand[topOperand] = 'F';
-                        }
-
-                        break;
-                    default:
-                        printf("INVALID OPERATOR DETECTED\n");
-                        return 'E';
-                    }
-                }
-                topOperator--; //pop
-            }
-            topOperator--;
+            NumOfoperand_stacks++;
         }
         else
         {
-
-            topOperator++;
-            operators[topOperator] = *i;
+            NumOfoperator_stack++;
         }
     }
-    while (topOperator != -1)
+
+    char *operator_stack = (char *)malloc(NumOfoperator_stack * sizeof(char)); // character array to implement operand stack
+    char *operand_stack = (char *)malloc(NumOfoperand_stacks * sizeof(char));  // character array to implement operator stack
+    int operand_top = -1;                                                      // integer pointing to the top of the operand stack
+    int operator_top = -1;                                                     // integer pointing to the top of the operand stack
+
+    for (char *i = formula; *i != '\0'; i++)
+    {
+        if (*i == ' ') //Ignore if blank space added as input
+            continue;
+        if ((int)*i >= 48 && (int)*i <= 57)     //48 and 57 are ASCII values of 1 and 9 respectively
+        {
+            push(operand_stack_val[(int)(*i) - '1'], operand_stack, &operand_top);  //Push if an operand in operand stack
+        }
+        else if (*i == ')') //Process till current blacket closed
+        {
+            char operator= pop(operator_stack, &operator_top);
+            while (operator!= '(')
+            { //PROCESS
+                process(operand_stack, &operand_top, operator);
+                operator= pop(operator_stack, &operator_top);
+            }
+        }
+        else
+        {
+            push(*i, operator_stack, &operator_top); //If nothing then it is a operator thus push in operator stack
+        }
+    }
+    while (operator_top != -1) //Process the remaining
     {
         //Process
-        char op1 = operand[topOperand];
-        char operator= operators[topOperator];
-        if (operator== '~') //Unary Operator
-        {
-            if (operand[topOperand] == 'T')
-            {
-                operand[topOperand] = 'F';
-            }
-            else
-            {
-                operand[topOperand] = 'T';
-            }
-        }
-        else //Binary Operator
-        {
-            topOperand--;
-            char op2 = operand[topOperand];
-
-            switch (operator)
-            {
-            case 'V':
-                if (op1 == 'T' || op2 == 'T')
-                    operand[topOperand] = 'T';
-                else
-                {
-                    operand[topOperand] = 'F';
-                }
-
-                break;
-            case '^':
-                if (op1 == 'T' && op2 == 'T')
-                    operand[topOperand] = 'T';
-                else
-                {
-                    operand[topOperand] = 'F';
-                }
-
-                break;
-            case '>':
-                if (op1 == 'F' || op2 == 'T')
-                    operand[topOperand] = 'T';
-                else
-                {
-                    operand[topOperand] = 'F';
-                }
-
-                break;
-            default:
-                printf("INVALID OPERATOR DETECTED\n");
-                return 'E';
-            }
-        }
-        topOperator--; //pop
+        char operator= pop(operator_stack, &operator_top);
+        process(operand_stack, &operand_top, operator);
     }
-    if (topOperand != 0)
-        printf("CHECK ERROR! %d", topOperand);
-    return operand[topOperand];
+    if (operand_top != 0)
+        printf("CHECK ERROR! %d", operand_top);
+    return pop(operand_stack, &operand_top);
 }
 
 void main()
 {
-    unsigned int n;
 
-    char propLogic[MAX_STRING_LENGTH], values[Max_Atoms];
+    int n;                      // number of operand_stacks
+    char formula[MAX];          // character array to store the input formula
+    char operand_stack_val[10]; // array to store the valuation of operand_stacks (either T or F)
+
     scanf("%d", &n);
-    scanf("\n%[^\n]%c", propLogic);
-    unsigned int NumOfOperators = 0, NumOfOperands = 0;
-    for (char *i = propLogic; *i != '\0'; i++)
-    {
-        if (*i == ' ')
-            continue;
-        if ((int)*i >= 48 && (int)*i <= 57)
-        {
-            NumOfOperands++;
-        }
-        else
-        {
-            NumOfOperators++;
-        }
-    }
+    scanf("\n%[^\n]%c", formula);
 
     int noOfValues = (int)1 << n;
     int trueCtr = 0;
-    char CNF[MAX_STRING_LENGTH];
+    char CNF[MAX];
     int CNFi = 0;
 
     for (int i = 0; i < noOfValues; i++)
@@ -182,19 +191,18 @@ void main()
         { //VALUE OF Jth atom
             if ((i & (1 << j)) == 0)
             {
-                values[j] = 'F';
+                operand_stack_val[j] = 'F';
             }
             else
             {
-                values[j] = 'T';
+                operand_stack_val[j] = 'T';
             }
         }
-        int ans = evalv(n, propLogic, values, NumOfOperators, NumOfOperands);
+        int ans = eval_formula(n, formula, operand_stack_val);
         if (ans == 'T')
             trueCtr++;
         else
         {
-            printf("hi %d %C%C%C\n", i, values[0], values[1], values[2]);
             if (CNFi != 0)
             {
                 CNF[CNFi++] = ' ';
@@ -207,7 +215,7 @@ void main()
             CNF[CNFi++] = ' ';
             for (int j = 0; j < n; j++)
             {
-                if (values[j] == 'T')
+                if (operand_stack_val[j] == 'T')
                 {
                     CNF[CNFi++] = '(';
 
